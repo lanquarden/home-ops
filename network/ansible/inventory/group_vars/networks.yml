@@ -1,0 +1,28 @@
+---
+network:
+  vlans:
+    - name: LAN
+      id: 1
+      untagged: true
+      subnet: 192.168.1.0/24
+      gateway: 192.168.1.1
+      dhcp_pool: 192.168.1.100-192.168.1.254
+      dns_server: 192.168.1.16
+    - name: IoT
+      id: 20
+      subnet: 192.168.20.0/24
+      gateway: 192.168.20.1
+      dhcp_pool: 192.168.20.100-192.168.20.254
+      dns_server: 192.168.1.16
+    - name: NoT
+      id: 30
+      subnet: 192.168.30.0/24
+      gateway: 192.168.30.1
+      dhcp_pool: 192.168.30.100-192.168.30.254
+      dns_server: 192.168.1.1
+    - name: Guest
+      id: 100
+      subnet: 192.168.50.0/24
+      gateway: 192.168.50.1
+      dhcp_pool: 192.168.50.100-192.168.50.254
+      dns_server: 1.1.1.1

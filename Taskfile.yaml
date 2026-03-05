@@ -16,9 +16,11 @@ env:
   KUBECONFIG: '{{.ROOT_DIR}}/kubeconfig'
   SOPS_AGE_KEY_FILE: '{{.ROOT_DIR}}/age.key'
   TALOSCONFIG: '{{.TALOSCONFIG}}'
+  PATH: '{{.ROOT_DIR}}/.venv/bin:{{.PATH}}'
 
 includes:
   bootstrap: .taskfiles/bootstrap
+  network: .taskfiles/network
   talos: .taskfiles/talos
   template: .taskfiles/template
 

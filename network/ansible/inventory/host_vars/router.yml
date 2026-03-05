@@ -1,0 +1,135 @@
+---
+routeros:
+  system_identity:
+    name: router
+
+  bridge:
+    - name: bridge
+      vlan_filtering: true
+      pvid: 1
+
+  vlan: >-
+    {%- set vlans = [] -%}
+    {%- for net in network.vlans if not net.untagged | default(false) -%}
+      {%- set _ = vlans.append({
+        "name": "vlan" ~ net.id ~ "-" ~ net.name,
+        "interface": "bridge",
+        "vlan_id": net.id
+      }) -%}
+    {%- endfor -%}
+    {{ vlans }}
+
+  bridge_port:
+    - bridge: bridge
+      interface: sfp-sfpplus1
+      # Trunk port
+      frame_types: admit-only-vlan-tagged
+
+  bridge_vlan: >-
+    {%- set bridge_vlans = [] -%}
+    {# Tagged VLANs #}
+    {%- for net in network.vlans if not net.untagged | default(false) -%}
+      {%- set _ = bridge_vlans.append({
+        "bridge": "bridge",
+        "tagged": ["bridge", "sfp-sfpplus1"],
+        "vlan_ids": net.id
+      }) -%}
+    {%- endfor -%}
+    {# Untagged LAN (VLAN 1) #}
+    {%- set _ = bridge_vlans.append({
+      "bridge": "bridge",
+      "untagged": ["bridge", "sfp-sfpplus1"],
+      "vlan_ids": 1
+    }) -%}
+    {{ bridge_vlans }}
+
+  ip_address: >-
+    {%- set ips = [] -%}
+    {%- for net in network.vlans -%}
+      {%- set interface = "bridge" if net.untagged | default(false) else "vlan" ~ net.id ~ "-" ~ net.name -%}
+      {%- set _ = ips.append({
+        "address": net.gateway ~ "/" ~ net.subnet.split('/')[-1],
+        "interface": interface
+      }) -%}
+    {%- endfor -%}
+    {{ ips }}
+
+  ip_pool: >-
+    {%- set pools = [] -%}
+    {%- for net in network.vlans -%}
+      {%- set _ = pools.append({
+        "name": "pool-" ~ net.name,
+        "ranges": net.dhcp_pool
+      }) -%}
+    {%- endfor -%}
+    {{ pools }}
+
+  ip_dhcp_server: >-
+    {%- set servers = [] -%}
+    {%- for net in network.vlans -%}
+      {%- set interface = "bridge" if net.untagged | default(false) else "vlan" ~ net.id ~ "-" ~ net.name -%}
+      {%- set _ = servers.append({
+        "name": "dhcp-" ~ net.name,
+        "interface": interface,
+        "address_pool": "pool-" ~ net.name
+      }) -%}
+    {%- endfor -%}
+    {{ servers }}
+
+  ip_dhcp_server_network: >-
+    {%- set dhcp_nets = [] -%}
+    {%- for net in network.vlans -%}
+      {%- set _ = dhcp_nets.append({
+        "address": net.subnet,
+        "gateway": net.gateway,
+        "dns_server": net.dns_server
+      }) -%}
+    {%- endfor -%}
+    {{ dhcp_nets }}
+
+  ip_dhcp_server_lease: "{{ network.leases }}"
+
+  ip_dns_static: >-
+    {%- set dns = [] -%}
+    {%- for entry in network.dns_entries -%}
+      {%- set _ = dns.append({
+        "name": entry.hostname,
+        "address": entry.address
+      }) -%}
+    {%- endfor -%}
+    {{ dns }}
+
+  ip_firewall_address_list: >-
+    {%- set lists = [] -%}
+    {%- for net in network.vlans -%}
+      {%- set _ = lists.append({
+        "address": net.subnet,
+        "list": "Trusted" if net.name == "LAN" else net.name
+      }) -%}
+    {%- endfor -%}
+    {{ lists }}
+
+  ip_firewall_filter:
+    - chain: forward
+      action: accept
+      connection_state: established,related
+    - chain: forward
+      action: drop
+      in_interface: vlan20-IoT
+      out_interface: bridge
+      dst_address_list: Trusted
+    - chain: forward
+      action: drop
+      in_interface: vlan30-NoT
+      out_interface: ether1
+    - chain: input
+      action: accept
+      protocol: tcp
+      dst_port: 22,80,443
+      in_interface: ether1
+      comment: "TEMPORARY: Allow SSH and Web for initial configuration"
+
+  ip_dhcp_client:
+    - interface: ether1
+      add_default_route: yes
+      use_peer_dns: yes

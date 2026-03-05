@@ -1,0 +1,17 @@
+name: mikrotik-lab
+
+topology:
+  nodes:
+    rb5009:
+      kind: vr-ros
+      image: docker.io/iparchitechs/chr:stable
+    crs328:
+      kind: vr-ros
+      image: docker.io/iparchitechs/chr:stable
+    css318:
+      kind: vr-ros
+      image: docker.io/iparchitechs/chr:stable
+
+  links:
+    - endpoints: ["rb5009:eth1", "crs328:eth1"] # SFP+1 on both
+    - endpoints: ["crs328:eth2", "css318:eth1"] # SFP+2 on CRS328 to SFP+1 on CSS318

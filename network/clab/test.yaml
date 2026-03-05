@@ -1,0 +1,9 @@
+name: test-lab
+topology:
+  nodes:
+    alpine:
+      kind: linux
+      image: alpine:latest
+      cmd: sleep infinity
+      healthcheck:
+        test: ["NONE"]

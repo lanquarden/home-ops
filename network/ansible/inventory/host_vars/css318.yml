@@ -1,0 +1,73 @@
+---
+swos_config:
+  # CSS318-16G-2S+ has 16 Gigabit ports and 2 SFP+ ports
+  # Port mapping: 1-16 (Gigabit), 17-18 (SFP+)
+  port_config:
+    # SFP+1 (Port 17) is the trunk to CRS328
+    17:
+      mode: trunk
+      native_vlan: 1
+    # Port 1 (Gigabit) as example access port
+    1:
+      mode: access
+      vlan: 1
+    2:
+      mode: access
+      vlan: 1
+    3:
+      mode: access
+      vlan: 1
+    4:
+      mode: access
+      vlan: 1
+    5:
+      mode: access
+      vlan: 1
+    6:
+      mode: access
+      vlan: 1
+    7:
+      mode: access
+      vlan: 1
+    8:
+      mode: access
+      vlan: 1
+    9:
+      mode: access
+      vlan: 1
+    10:
+      mode: access
+      vlan: 1
+    11:
+      mode: access
+      vlan: 1
+    12:
+      mode: access
+      vlan: 1
+    13:
+      mode: access
+      vlan: 1
+    14:
+      mode: access
+      vlan: 1
+    15:
+      mode: access
+      vlan: 1
+    16:
+      mode: access
+      vlan: 1
+    # SFP+2 (Port 18)
+    18:
+      mode: access
+      vlan: 1
+
+  vlans:
+    # Explicitly define VLANs if extra settings like IGMP snooping are needed
+    - vlan_id: 1
+      igmp_snooping: true
+    - vlan_id: 20
+      igmp_snooping: true
+    - vlan_id: 30
+      igmp_snooping: true
+    - vlan_id: 100
+      igmp_snooping: true
