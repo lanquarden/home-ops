@@ -1,0 +1,149 @@
+{
+  "name": "mikrotik-lab",
+  "type": "clab",
+  "clab": {
+    "config": {
+      "prefix": "clab",
+      "mgmt": {
+        "network": "clab",
+        "bridge": "podman1",
+        "ipv4-subnet": "172.20.20.0/24",
+        "ipv6-subnet": "3fff:172:20:20::/64",
+        "external-access": true
+      }
+    }
+  },
+  "ssh-pub-keys": [],
+  "nodes": {
+    "crs310": {
+      "index": "0",
+      "shortname": "crs310",
+      "longname": "clab-mikrotik-lab-crs310",
+      "fqdn": "crs310.mikrotik-lab.io",
+      "group": "",
+      "labdir": "/home/lanquarden/repos/home-ops/network/clab/clab-mikrotik-lab/crs310",
+      "kind": "vr-ros",
+      "image": "docker.io/iparchitechs/chr:stable",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "",
+      "mgmt-ipv4-prefix-length": 0,
+      "mgmt-ipv6-address": "",
+      "mgmt-ipv6-prefix-length": 0,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "podman1",
+        "clab-net-mgmt": "clab",
+        "clab-node-group": "",
+        "clab-node-kind": "vr-ros",
+        "clab-node-lab-dir": "/home/lanquarden/repos/home-ops/network/clab/clab-mikrotik-lab/crs310",
+        "clab-node-longname": "clab-mikrotik-lab-crs310",
+        "clab-node-name": "crs310",
+        "clab-node-type": "",
+        "clab-owner": "lanquarden",
+        "clab-topo-file": "/home/lanquarden/repos/home-ops/network/clab/topology.yaml",
+        "containerlab": "mikrotik-lab"
+      },
+      "port-bindings": [
+      ]
+    },
+    "crs328": {
+      "index": "1",
+      "shortname": "crs328",
+      "longname": "clab-mikrotik-lab-crs328",
+      "fqdn": "crs328.mikrotik-lab.io",
+      "group": "",
+      "labdir": "/home/lanquarden/repos/home-ops/network/clab/clab-mikrotik-lab/crs328",
+      "kind": "vr-ros",
+      "image": "docker.io/iparchitechs/chr:stable",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "",
+      "mgmt-ipv4-prefix-length": 0,
+      "mgmt-ipv6-address": "",
+      "mgmt-ipv6-prefix-length": 0,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "podman1",
+        "clab-net-mgmt": "clab",
+        "clab-node-group": "",
+        "clab-node-kind": "vr-ros",
+        "clab-node-lab-dir": "/home/lanquarden/repos/home-ops/network/clab/clab-mikrotik-lab/crs328",
+        "clab-node-longname": "clab-mikrotik-lab-crs328",
+        "clab-node-name": "crs328",
+        "clab-node-type": "",
+        "clab-owner": "lanquarden",
+        "clab-topo-file": "/home/lanquarden/repos/home-ops/network/clab/topology.yaml",
+        "containerlab": "mikrotik-lab"
+      },
+      "port-bindings": [
+      ]
+    },
+    "rb5009": {
+      "index": "2",
+      "shortname": "rb5009",
+      "longname": "clab-mikrotik-lab-rb5009",
+      "fqdn": "rb5009.mikrotik-lab.io",
+      "group": "",
+      "labdir": "/home/lanquarden/repos/home-ops/network/clab/clab-mikrotik-lab/rb5009",
+      "kind": "vr-ros",
+      "image": "docker.io/iparchitechs/chr:stable",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "",
+      "mgmt-ipv4-prefix-length": 0,
+      "mgmt-ipv6-address": "",
+      "mgmt-ipv6-prefix-length": 0,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "podman1",
+        "clab-net-mgmt": "clab",
+        "clab-node-group": "",
+        "clab-node-kind": "vr-ros",
+        "clab-node-lab-dir": "/home/lanquarden/repos/home-ops/network/clab/clab-mikrotik-lab/rb5009",
+        "clab-node-longname": "clab-mikrotik-lab-rb5009",
+        "clab-node-name": "rb5009",
+        "clab-node-type": "",
+        "clab-owner": "lanquarden",
+        "clab-topo-file": "/home/lanquarden/repos/home-ops/network/clab/topology.yaml",
+        "containerlab": "mikrotik-lab"
+      },
+      "port-bindings": [
+      ]
+    }
+  },
+  "links": [
+    {
+      "endpoints": {
+        "a": {
+          "node": "rb5009",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:6d:b3:ee",
+          "peer": "z"
+        },
+        "z": {
+          "node": "crs328",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:bf:53:2c",
+          "peer": "a"
+        }
+      }
+    },
+    {
+      "endpoints": {
+        "a": {
+          "node": "crs328",
+          "interface": "eth2",
+          "mac": "aa:c1:ab:36:f7:0d",
+          "peer": "z"
+        },
+        "z": {
+          "node": "crs310",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:b6:90:8b",
+          "peer": "a"
+        }
+      }
+    }
+  ]
+}

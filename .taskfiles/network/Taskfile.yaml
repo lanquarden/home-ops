@@ -1,0 +1,99 @@
+---
+version: '3'
+
+vars:
+  CLAB_BIN: '/home/lanquarden/.local/share/mise/installs/aqua-srl-labs-containerlab/0.73.0/containerlab'
+  CLAB_DIR: '{{.ROOT_DIR}}/network/clab'
+
+tasks:
+
+  default: task --list
+
+  clab:up:
+    desc: Start the Containerlab simulation
+    cmd: sudo -E env CONTAINERS_CONF={{.CLAB_DIR}}/containers.conf {{.CLAB_BIN}} deploy --runtime podman -t {{.CLAB_DIR}}/topology.yaml
+    preconditions:
+      - test -f {{.CLAB_BIN}}
+      - test -f {{.CLAB_DIR}}/topology.yaml
+      - test -f {{.CLAB_DIR}}/containers.conf
+
+  clab:down:
+    desc: Stop the Containerlab simulation
+    cmd: sudo -E env CONTAINERS_CONF={{.CLAB_DIR}}/containers.conf {{.CLAB_BIN}} destroy --runtime podman -t {{.CLAB_DIR}}/topology.yaml
+    preconditions:
+      - test -f {{.CLAB_BIN}}
+
+  ansible:init:
+    desc: Install Ansible collections
+    cmd: ansible-galaxy collection install -r {{.ROOT_DIR}}/network/ansible/requirements.yml
+    preconditions:
+      - which ansible-galaxy
+      - test -f {{.ROOT_DIR}}/network/ansible/requirements.yml
+
+  ansible:apply:
+    desc: Apply Ansible configuration
+    cmd: ansible-playbook -i {{.ROOT_DIR}}/network/ansible/inventory/hosts.ini {{.ROOT_DIR}}/network/ansible/playbooks/configure.yml {{.CLI_ARGS}}
+    preconditions:
+      - which ansible-playbook
+      - test -f {{.ROOT_DIR}}/network/ansible/inventory/hosts.ini
+
+  discover:
+    desc: Discover MikroTik devices on the network
+    cmd: mndp
+    preconditions:
+      - which mndp
+
+  bootstrap:
+    desc: Bootstrap a MikroTik device via MAC-Telnet
+    summary: |
+      Usage: task network:bootstrap MAC=01:02:03:04:05:06
+      Credentials are read from network/ansible/inventory/group_vars/mikrotik.sops.yml
+    vars:
+      MIKROTIK_SOPS_FILE: '{{.ROOT_DIR}}/network/ansible/inventory/group_vars/mikrotik.sops.yml'
+    cmds:
+      - |
+        BOOTSTRAP_USER=$(sops -d --extract '["mikrotik_bootstrap_user"]' {{.MIKROTIK_SOPS_FILE}})
+        BOOTSTRAP_PASS=$(sops -d --extract '["mikrotik_bootstrap_pass"]' {{.MIKROTIK_SOPS_FILE}})
+        FINAL_USER=$(sops -d --extract '["mikrotik_user"]' {{.MIKROTIK_SOPS_FILE}})
+        FINAL_PASS=$(sops -d --extract '["mikrotik_pass"]' {{.MIKROTIK_SOPS_FILE}})
+        {{.ROOT_DIR}}/scripts/mikrotik-bootstrap.sh "{{.MAC}}" "$BOOTSTRAP_USER" "$BOOTSTRAP_PASS" "$FINAL_USER" "$FINAL_PASS"
+    preconditions:
+      - test -f {{.MIKROTIK_SOPS_FILE}}
+      - which sops
+      - test -n "{{.MAC}}"
+
+  backup:
+    desc: Create a backup on a MikroTik device
+    summary: |
+      Usage: task network:backup MAC=01:02:03:04:05:06 NAME=mybackup
+    vars:
+      MIKROTIK_SOPS_FILE: '{{.ROOT_DIR}}/network/ansible/inventory/group_vars/mikrotik.sops.yml'
+      NAME: '{{.NAME | default "backup"}}'
+    cmds:
+      - |
+        USER=$(sops -d --extract '["mikrotik_user"]' {{.MIKROTIK_SOPS_FILE}})
+        PASS=$(sops -d --extract '["mikrotik_pass"]' {{.MIKROTIK_SOPS_FILE}})
+        (sleep 2; echo "/system backup save name=\"{{.NAME}}\""; sleep 2; echo "/quit") | mactelnet -t 5 -u "$USER" -p "$PASS" "{{.MAC}}"
+    preconditions:
+      - test -f {{.MIKROTIK_SOPS_FILE}}
+      - which mactelnet
+      - test -n "{{.MAC}}"
+
+  recover:
+    desc: Recover a MikroTik device by restoring a backup via MAC-Telnet
+    summary: |
+      Usage: task network:recover MAC=01:02:03:04:05:06 NAME=mybackup [IS_RSC=true]
+      By default it looks for NAME.backup, if IS_RSC=true it looks for NAME.rsc
+    vars:
+      MIKROTIK_SOPS_FILE: '{{.ROOT_DIR}}/network/ansible/inventory/group_vars/mikrotik.sops.yml'
+      NAME: '{{.NAME | default "backup"}}'
+      IS_RSC: '{{.IS_RSC | default "false"}}'
+    cmds:
+      - |
+        USER=$(sops -d --extract '["mikrotik_user"]' {{.MIKROTIK_SOPS_FILE}})
+        PASS=$(sops -d --extract '["mikrotik_pass"]' {{.MIKROTIK_SOPS_FILE}})
+        {{.ROOT_DIR}}/scripts/mikrotik-recover.sh "{{.MAC}}" "$USER" "$PASS" "{{.NAME}}" "{{.IS_RSC}}"
+    preconditions:
+      - test -f {{.MIKROTIK_SOPS_FILE}}
+      - which sops
+      - test -n "{{.MAC}}"

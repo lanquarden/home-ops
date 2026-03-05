@@ -1,0 +1,15 @@
+---
+network:
+  vlan:
+    lan:
+      id: 10
+      name: "LAN"
+    iot:
+      id: 20
+      name: "IoT"
+    not:
+      id: 30
+      name: "NoT"
+    management:
+      id: 1
+      name: "Management"

@@ -1,0 +1,26 @@
+---
+routeros:
+  bridge:
+    - name: bridge
+      vlan_filtering: true
+      frame_types: admit-only-vlan-tagged
+      pvid: 1
+
+  bridge_port:
+    - bridge: bridge
+      interface: sfp-sfpplus1
+      frame_types: admit-only-vlan-tagged
+
+  bridge_vlan:
+    - bridge: bridge
+      tagged:
+        - sfp-sfpplus1
+      vlan_ids: 10
+    - bridge: bridge
+      tagged:
+        - sfp-sfpplus1
+      vlan_ids: 20
+    - bridge: bridge
+      tagged:
+        - sfp-sfpplus1
+      vlan_ids: 30

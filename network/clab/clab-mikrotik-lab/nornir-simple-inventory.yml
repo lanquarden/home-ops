@@ -1,0 +1,16 @@
+---
+crs310:
+    username: admin
+    password: admin
+    platform: vr-ros
+    hostname: 
+crs328:
+    username: admin
+    password: admin
+    platform: vr-ros
+    hostname: 
+rb5009:
+    username: admin
+    password: admin
+    platform: vr-ros
+    hostname: 

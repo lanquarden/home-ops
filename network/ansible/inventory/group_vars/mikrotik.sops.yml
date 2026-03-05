@@ -1,0 +1,19 @@
+mikrotik_user: ENC[AES256_GCM,data:QNfxSF8=,iv:LtqyGAk0TRcL4k/hF1xYM8SkoioLuyvFMfmsewJjNtU=,tag:rmHCdxuoXPIFOAQyUcthyg==,type:str]
+mikrotik_pass: ""
+mikrotik_bootstrap_user: ENC[AES256_GCM,data:NK9OCEY=,iv:A6J3H+/sueLmBuQRjcPO55y8FZW8oH4GdtG0Uv1BapU=,tag:h4fm6w5RZM1bMsKgdy+CqA==,type:str]
+mikrotik_bootstrap_pass: ""
+sops:
+    age:
+        - recipient: age106eq6dp3vmecwxydjrh0449zv2ru7rp2wdn5u6u8vu7tv320t3jswfgg73
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAzcFkxUnd5MnNkc3JucFJ1
+            ZXlmckNTWmc4OHZ6dnZqYmVzbE1EbGw1cW5NCkx4eEtxRURjSU5YNWx4Tld3OXN4
+            THJnMnZnNUFXNFdLZXBUelBBMXNRVFEKLS0tICs1alRHUm5reUIrTGhza1EzZEo3
+            TElCaFB0Zm4yZnZHRnFjdE5Wazd2Y1EKlxs44LxYWOLpVyyM1Goq4BHsUELcJ+oj
+            /5800IGHfh4opnAecAPRReuRokpNhO61rfBnzc8tnajgp6MNQRLQjQ==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2026-03-05T20:24:52Z"
+    mac: ENC[AES256_GCM,data:gJQGFIQVQQkpgwywuOELSkM64XL9cgo8UohDH2tx4q0nwhvtjUDHMvLSAdddbp2jXPY37NJiYzKlHVdddJHBwjWFrrIxTfWNQQ3+QTgYCNL4qUfn25uvpP91JIkTZKJxc+hqIcOaePKAvrgNYAQwZ69kyjFlU84GW4cilZ31pjM=,iv:d9IwI9fIH9g5zIt1dSLv6Y7F3Ge2f6JABEBNZmZn/rU=,tag:pmSTN9/O9r1OUmyLsKrBPw==,type:str]
+    unencrypted_suffix: _unencrypted
+    version: 3.12.1

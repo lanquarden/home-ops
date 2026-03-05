@@ -1,0 +1,53 @@
+{
+  "name": "test-lab",
+  "type": "clab",
+  "clab": {
+    "config": {
+      "prefix": "clab",
+      "mgmt": {
+        "network": "clab",
+        "bridge": "podman1",
+        "ipv4-subnet": "172.20.20.0/24",
+        "ipv6-subnet": "3fff:172:20:20::/64",
+        "external-access": true
+      }
+    }
+  },
+  "ssh-pub-keys": [],
+  "nodes": {
+    "alpine": {
+      "index": "0",
+      "shortname": "alpine",
+      "longname": "clab-test-lab-alpine",
+      "fqdn": "alpine.test-lab.io",
+      "group": "",
+      "labdir": "/home/lanquarden/repos/home-ops/network/clab/clab-test-lab/alpine",
+      "kind": "linux",
+      "image": "alpine:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "",
+      "mgmt-ipv4-prefix-length": 0,
+      "mgmt-ipv6-address": "",
+      "mgmt-ipv6-prefix-length": 0,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "podman1",
+        "clab-net-mgmt": "clab",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/home/lanquarden/repos/home-ops/network/clab/clab-test-lab/alpine",
+        "clab-node-longname": "clab-test-lab-alpine",
+        "clab-node-name": "alpine",
+        "clab-node-type": "",
+        "clab-owner": "lanquarden",
+        "clab-topo-file": "/home/lanquarden/repos/home-ops/network/clab/test.yaml",
+        "containerlab": "test-lab"
+      },
+      "port-bindings": [
+      ]
+    }
+  },
+  "links": [
+  ]
+}

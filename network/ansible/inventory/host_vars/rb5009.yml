@@ -1,0 +1,117 @@
+---
+routeros:
+  bridge:
+    - name: bridge
+      vlan_filtering: true
+      frame_types: admit-only-vlan-tagged
+      pvid: 1
+
+  vlan:
+    - name: vlan10-LAN
+      interface: bridge
+      vlan_id: 10
+    - name: vlan20-IoT
+      interface: bridge
+      vlan_id: 20
+    - name: vlan30-NoT
+      interface: bridge
+      vlan_id: 30
+
+  bridge_port:
+    - bridge: bridge
+      interface: sfp-sfpplus1
+      frame_types: admit-only-vlan-tagged
+
+  bridge_vlan:
+    - bridge: bridge
+      tagged:
+        - bridge
+        - sfp-sfpplus1
+      vlan_ids: 10
+    - bridge: bridge
+      tagged:
+        - bridge
+        - sfp-sfpplus1
+      vlan_ids: 20
+    - bridge: bridge
+      tagged:
+        - bridge
+        - sfp-sfpplus1
+      vlan_ids: 30
+
+  ip_address:
+    - address: 192.168.1.1/24
+      interface: vlan10-LAN
+    - address: 192.168.20.1/24
+      interface: vlan20-IoT
+    - address: 192.168.30.1/24
+      interface: vlan30-NoT
+
+  ip_pool:
+    - name: pool-LAN
+      ranges: 192.168.1.100-192.168.1.254
+    - name: pool-IoT
+      ranges: 192.168.20.100-192.168.20.254
+    - name: pool-NoT
+      ranges: 192.168.30.100-192.168.30.254
+
+  ip_dhcp_server:
+    - name: dhcp-LAN
+      interface: vlan10-LAN
+      address_pool: pool-LAN
+    - name: dhcp-IoT
+      interface: vlan20-IoT
+      address_pool: pool-IoT
+    - name: dhcp-NoT
+      interface: vlan30-NoT
+      address_pool: pool-NoT
+
+  ip_dhcp_server_network:
+    - address: 192.168.1.0/24
+      gateway: 192.168.1.1
+      dns_server: 192.168.1.16
+    - address: 192.168.20.0/24
+      gateway: 192.168.20.1
+      dns_server: 192.168.1.16
+    - address: 192.168.30.0/24
+      gateway: 192.168.30.1
+      dns_server: 192.168.1.1
+
+  ip_dhcp_server_lease:
+    - address: 192.168.1.54
+      mac_address: 1c:69:7a:6a:20:35
+      comment: "rocione"
+    - address: 192.168.1.10
+      mac_address: 1c:69:7a:6a:63:d9
+      comment: "rocitwo"
+    - address: 192.168.1.57
+      mac_address: 88:ae:dd:09:71:af
+      comment: "rocithree"
+    - address: 192.168.1.12
+      mac_address: b4:7a:f1:a8:b0:a0
+      comment: "storone"
+    - address: 192.168.1.13
+      mac_address: 38:ea:a7:ab:5e:98
+      comment: "stortwo"
+
+  ip_firewall_address_list:
+    - address: 192.168.1.0/24
+      list: Trusted
+    - address: 192.168.20.0/24
+      list: IoT
+    - address: 192.168.30.0/24
+      list: NoT
+
+  ip_firewall_filter:
+    - chain: forward
+      action: accept
+      connection_state: established,related
+    - chain: forward
+      action: drop
+      in_interface: vlan20-IoT
+      out_interface: vlan10-LAN
+      dst_address_list: Trusted
+    - chain: forward
+      action: drop
+      in_interface: vlan30-NoT
+      out_interface: ether1

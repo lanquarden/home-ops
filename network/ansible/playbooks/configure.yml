@@ -1,0 +1,79 @@
+---
+- name: Configure MikroTik devices
+  hosts: mikrotik
+  gather_facts: false
+
+  tasks:
+    - name: Rename interfaces for lab simulation
+      when: "'lab' in group_names"
+      community.routeros.command:
+        commands:
+          - /interface set [ find name="ether1" ] name="sfp-sfpplus1"
+          - /interface set [ find name="ether2" ] name="sfp-sfpplus2"
+      ignore_errors: true
+
+    - name: Configure bridges
+      community.routeros.api:
+        path: interface bridge
+        data: "{{ item }}"
+      loop: "{{ routeros.bridge | default([]) }}"
+
+    - name: Configure VLANs
+      community.routeros.api:
+        path: interface vlan
+        data: "{{ item }}"
+      loop: "{{ routeros.vlan | default([]) }}"
+
+    - name: Configure bridge ports
+      community.routeros.api:
+        path: interface bridge port
+        data: "{{ item }}"
+      loop: "{{ routeros.bridge_port | default([]) }}"
+
+    - name: Configure bridge VLANs
+      community.routeros.api:
+        path: interface bridge vlan
+        data: "{{ item }}"
+      loop: "{{ routeros.bridge_vlan | default([]) }}"
+
+    - name: Configure IP addresses
+      community.routeros.api:
+        path: ip address
+        data: "{{ item }}"
+      loop: "{{ routeros.ip_address | default([]) }}"
+
+    - name: Configure IP pools
+      community.routeros.api:
+        path: ip pool
+        data: "{{ item }}"
+      loop: "{{ routeros.ip_pool | default([]) }}"
+
+    - name: Configure DHCP servers
+      community.routeros.api:
+        path: ip dhcp-server
+        data: "{{ item }}"
+      loop: "{{ routeros.ip_dhcp_server | default([]) }}"
+
+    - name: Configure DHCP server networks
+      community.routeros.api:
+        path: ip dhcp-server network
+        data: "{{ item }}"
+      loop: "{{ routeros.ip_dhcp_server_network | default([]) }}"
+
+    - name: Configure DHCP server leases
+      community.routeros.api:
+        path: ip dhcp-server lease
+        data: "{{ item }}"
+      loop: "{{ routeros.ip_dhcp_server_lease | default([]) }}"
+
+    - name: Configure Firewall address lists
+      community.routeros.api:
+        path: ip firewall address-list
+        data: "{{ item }}"
+      loop: "{{ routeros.ip_firewall_address_list | default([]) }}"
+
+    - name: Configure Firewall filter rules
+      community.routeros.api:
+        path: ip firewall filter
+        data: "{{ item }}"
+      loop: "{{ routeros.ip_firewall_filter | default([]) }}"
