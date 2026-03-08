@@ -11,4 +11,5 @@ ansible = [
     "ansible-pylibssh>=1.3.0",
     "paramiko>=4.0.0",
     "mikrotik-swos>=0.1.2",
+    "librouteros>=3.2.1",
 ]
