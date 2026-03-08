@@ -93,6 +93,17 @@
         values: "{{ item }}"
       loop: "{{ routeros.ip_route | default([]) }}"
 
+    - name: Configure Firewall NAT
+      community.routeros.api_find_and_modify:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        path: ip firewall nat
+        find:
+          comment: "{{ item.comment }}"
+        values: "{{ item }}"
+      loop: "{{ routeros.ip_firewall_nat | default([]) }}"
+
 - name: Configure SwOS devices
   hosts: mikrotik
   gather_facts: false

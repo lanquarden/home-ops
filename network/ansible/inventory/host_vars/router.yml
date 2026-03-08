@@ -97,6 +97,11 @@ routeros:
         "address": entry.address
       }) -%}
     {%- endfor -%}
+    {# Wildcard for Traefik Cluster #}
+    {%- set _ = dns.append({
+      "regexp": ".*\\.k\\.lanquarden\\.com",
+      "address": "192.168.1.15"
+    }) -%}
     {{ dns }}
 
   ip_firewall_address_list: >-
@@ -104,30 +109,173 @@ routeros:
     {%- for net in network.vlans -%}
       {%- set _ = lists.append({
         "address": net.subnet,
-        "list": "Trusted" if net.name == "LAN" else net.name
+        "list": "LAN_SUBNETS",
+        "comment": net.name
       }) -%}
     {%- endfor -%}
+    {# Service Hosts #}
+    {%- set _ = lists.extend([
+      {"list": "MQTT_SERVER", "address": "192.168.1.19"},
+      {"list": "HOME_ASSISTANT", "address": "192.168.1.20"},
+      {"list": "SIP_SERVER", "address": "192.168.1.11"},
+      {"list": "SMART_DASHBOARD", "address": "192.168.1.156"},
+      {"list": "VPN_SUBNET", "address": "192.168.2.0/26"}
+    ]) -%}
     {{ lists }}
 
   ip_firewall_filter:
-    - chain: forward
+    # --- Input Chain ---
+    - chain: input
       action: accept
-      connection_state: established,related
-    - chain: forward
+      connection_state: established,related,untracked
+      comment: "Allow established/related"
+    - chain: input
       action: drop
-      in_interface: vlan20-IoT
-      out_interface: bridge
-      dst_address_list: Trusted
-    - chain: forward
-      action: drop
-      in_interface: vlan30-NoT
-      out_interface: ether1
+      connection_state: invalid
+      comment: "Drop invalid"
+    - chain: input
+      action: accept
+      protocol: icmp
+      comment: "Allow ICMP"
+    - chain: input
+      action: accept
+      in_interface_list: LAN
+      comment: "Allow LAN to router"
+    - chain: input
+      action: accept
+      protocol: udp
+      dst_port: 51194
+      comment: "Allow WireGuard Input"
     - chain: input
       action: accept
       protocol: tcp
-      dst_port: 22,80,443
+      dst_port: "22,80"
       in_interface: ether1
-      comment: "TEMPORARY: Allow SSH and Web for initial configuration"
+      comment: "TEMP: Allow SSH/HTTP for initial config"
+    - chain: input
+      action: drop
+      comment: "Drop all other input"
+
+    # --- Forward Chain ---
+    - chain: forward
+      action: fasttrack_connection
+      connection_state: established,related
+      comment: "Fasttrack"
+    - chain: forward
+      action: accept
+      connection_state: established,related,untracked
+      comment: "Allow established/related"
+    - chain: forward
+      action: drop
+      connection_state: invalid
+      comment: "Drop invalid"
+    - chain: forward
+      action: accept
+      connection_nat_state: dstnat
+      comment: "Allow Port Forwards"
+
+    # --- Inter-VLAN Rules ---
+    - chain: forward
+      action: accept
+      src_address: 192.168.30.0/24
+      dst_address_list: MQTT_SERVER
+      protocol: tcp
+      dst_port: 1883,8883
+      comment: "Allow NoT to MQTT"
+    - chain: forward
+      action: accept
+      src_address: 192.168.30.0/24
+      dst_address_list: HOME_ASSISTANT
+      protocol: tcp
+      dst_port: 8123
+      comment: "Allow NoT to Home Assistant"
+    - chain: forward
+      action: accept
+      src_address: 192.168.30.0/24
+      dst_address_list: SIP_SERVER
+      protocol: udp
+      dst_port: 5060,5160
+      comment: "Allow NoT to SIP UDP"
+    - chain: forward
+      action: accept
+      src_address: 192.168.30.0/24
+      dst_address_list: SIP_SERVER
+      protocol: tcp
+      dst_port: 5060,5160
+      comment: "Allow NoT to SIP TCP"
+    - chain: forward
+      action: accept
+      src_address: 192.168.30.0/24
+      dst_address_list: SMART_DASHBOARD
+      protocol: tcp
+      dst_port: 80
+      comment: "Allow NoT to SmartDashboard"
+    - chain: forward
+      action: accept
+      src_address_list: VPN_SUBNET
+      dst_address_list: LAN_SUBNETS
+      comment: "Allow VPN to all local networks"
+
+    # --- Isolation Rules ---
+    - chain: forward
+      action: drop
+      src_address: 192.168.20.0/24
+      dst_address: 192.168.1.0/24
+      comment: "Drop IoT to LAN"
+    - chain: forward
+      action: drop
+      src_address: 192.168.20.0/24
+      dst_address: 192.168.30.0/24
+      comment: "Drop IoT to NoT"
+    - chain: forward
+      action: drop
+      src_address: 192.168.30.0/24
+      dst_address: 192.168.20.0/24
+      comment: "Drop NoT to IoT"
+    - chain: forward
+      action: drop
+      src_address: 192.168.50.0/24
+      dst_address_list: LAN_SUBNETS
+      comment: "Drop Guest to internal networks"
+    - chain: forward
+      action: drop
+      src_address: 192.168.30.0/24
+      comment: "Drop NoT to everything else (Isolation)"
+    - chain: forward
+      action: accept
+      in_interface_list: LAN
+      out_interface_list: WAN
+      comment: "Allow LAN to WAN"
+    - chain: forward
+      action: drop
+      comment: "Drop all other forward"
+
+  ip_firewall_nat:
+    - chain: srcnat
+      out_interface_list: WAN
+      action: masquerade
+      comment: "Masquerade"
+    # Port Forwards
+    - chain: dstnat
+      protocol: tcp
+      dst_port: 6881
+      action: dst-nat
+      to_addresses: 192.168.1.21
+      to_ports: 50413
+      comment: "Torrent TCP"
+    - chain: dstnat
+      protocol: udp
+      dst_port: 6881
+      action: dst-nat
+      to_addresses: 192.168.1.21
+      to_ports: 50413
+      comment: "Torrent UDP"
+    - chain: dstnat
+      protocol: udp
+      dst_port: 51194
+      action: dst-nat
+      to_addresses: 192.168.1.11
+      comment: "Wireguard to internal node"
 
   ip_dhcp_client:
     - interface: ether1
