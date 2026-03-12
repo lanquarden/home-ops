@@ -1,4 +1,6 @@
 ---
+wan_type: dhcp
+
 routeros:
   system_identity:
     name: router
@@ -18,6 +20,40 @@ routeros:
       }) -%}
     {%- endfor -%}
     {{ vlans }}
+
+  interface_list:
+    - name: WAN
+    - name: LAN
+
+  interface_list_member: >-
+    {%- set members = [] -%}
+    {# WAN #}
+    {%- if wan_type == 'pppoe' -%}
+      {%- set _ = members.append({"interface": "pppoe-out1", "list": "WAN"}) -%}
+    {%- else -%}
+      {%- set _ = members.append({"interface": "ether1", "list": "WAN"}) -%}
+    {%- endif -%}
+    {# LAN #}
+    {%- set _ = members.append({"interface": "bridge", "list": "LAN"}) -%}
+    {%- for net in network.vlans if not net.untagged | default(false) -%}
+      {%- set _ = members.append({"interface": "vlan" ~ net.id ~ "-" ~ net.name, "list": "LAN"}) -%}
+    {%- endfor -%}
+    {{ members }}
+
+  interface_pppoe_client: >-
+    {%- if wan_type == 'pppoe' -%}
+      {{ [{
+        "name": "pppoe-out1",
+        "interface": "ether1",
+        "user": pppoe_user,
+        "password": pppoe_pass,
+        "add_default_route": "yes",
+        "use_peer_dns": "yes",
+        "disabled": "no"
+      }] }}
+    {%- else -%}
+      {{ [] }}
+    {%- endif -%}
 
   bridge_port:
     - bridge: bridge
@@ -150,7 +186,7 @@ routeros:
       action: accept
       protocol: tcp
       dst_port: "22,80"
-      in_interface: ether1
+      in_interface_list: WAN
       comment: "TEMP: Allow SSH/HTTP for initial config"
     - chain: input
       action: drop
@@ -277,7 +313,13 @@ routeros:
       to_addresses: 192.168.1.11
       comment: "Wireguard to internal node"
 
-  ip_dhcp_client:
-    - interface: ether1
-      add_default_route: yes
-      use_peer_dns: yes
+  ip_dhcp_client: >-
+    {%- if wan_type == 'dhcp' -%}
+      {{ [{
+        "interface": "ether1",
+        "add_default_route": "yes",
+        "use_peer_dns": "yes"
+      }] }}
+    {%- else -%}
+      {{ [] }}
+    {%- endif -%}

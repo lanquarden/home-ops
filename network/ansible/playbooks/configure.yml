@@ -27,17 +27,6 @@
         values: "{{ routeros.system_identity }}"
       when: routeros.system_identity is defined
 
-    - name: Configure interfaces
-      community.routeros.api_find_and_modify:
-        hostname: "{{ ansible_host }}"
-        username: "{{ ansible_user }}"
-        password: "{{ ansible_password }}"
-        path: interface
-        find:
-          name: "{{ item.name }}"
-        values: "{{ item }}"
-      loop: "{{ routeros.interface | default([]) }}"
-
     - name: Configure bridges
       community.routeros.api_find_and_modify:
         hostname: "{{ ansible_host }}"
@@ -48,6 +37,62 @@
           name: "{{ item.name }}"
         values: "{{ item }}"
       loop: "{{ routeros.bridge | default([]) }}"
+
+    - name: Configure VLANs
+      community.routeros.api_find_and_modify:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        path: interface vlan
+        find:
+          name: "{{ item.name }}"
+        values: "{{ item }}"
+      loop: "{{ routeros.vlan | default([]) }}"
+
+    - name: Configure Interface Lists
+      community.routeros.api_find_and_modify:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        path: interface list
+        find:
+          name: "{{ item.name }}"
+        values: "{{ item }}"
+      loop: "{{ routeros.interface_list | default([]) }}"
+
+    - name: Configure Interface List Members
+      community.routeros.api_find_and_modify:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        path: interface list member
+        find:
+          interface: "{{ item.interface }}"
+          list: "{{ item.list }}"
+        values: "{{ item }}"
+      loop: "{{ routeros.interface_list_member | default([]) }}"
+
+    - name: Configure PPPoE Client
+      community.routeros.api_find_and_modify:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        path: interface pppoe-client
+        find:
+          name: "{{ item.name }}"
+        values: "{{ item }}"
+      loop: "{{ routeros.interface_pppoe_client | default([]) }}"
+
+    - name: Configure DHCP Client
+      community.routeros.api_find_and_modify:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        path: ip dhcp-client
+        find:
+          interface: "{{ item.interface }}"
+        values: "{{ item }}"
+      loop: "{{ routeros.ip_dhcp_client | default([]) }}"
 
     - name: Configure bridge ports
       community.routeros.api_find_and_modify:
@@ -71,6 +116,17 @@
         values: "{{ item }}"
       loop: "{{ routeros.bridge_vlan | default([]) }}"
 
+    - name: Configure IP pools
+      community.routeros.api_find_and_modify:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        path: ip pool
+        find:
+          name: "{{ item.name }}"
+        values: "{{ item }}"
+      loop: "{{ routeros.ip_pool | default([]) }}"
+
     - name: Configure IP addresses
       community.routeros.api_find_and_modify:
         hostname: "{{ ansible_host }}"
@@ -82,6 +138,83 @@
         values: "{{ item }}"
       loop: "{{ routeros.ip_address | default([]) }}"
 
+    - name: Configure DHCP Server Networks
+      community.routeros.api_find_and_modify:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        path: ip dhcp-server network
+        find:
+          address: "{{ item.address }}"
+        values: "{{ item }}"
+      loop: "{{ routeros.ip_dhcp_server_network | default([]) }}"
+
+    - name: Configure DHCP Servers
+      community.routeros.api_find_and_modify:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        path: ip dhcp-server
+        find:
+          name: "{{ item.name }}"
+        values: "{{ item }}"
+      loop: "{{ routeros.ip_dhcp_server | default([]) }}"
+
+    - name: Configure DHCP Server Leases
+      community.routeros.api_find_and_modify:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        path: ip dhcp-server lease
+        find:
+          mac-address: "{{ item['mac-address'] }}"
+        values: "{{ item }}"
+      loop: "{{ routeros.ip_dhcp_server_lease | default([]) }}"
+
+    - name: Configure DNS Statics
+      community.routeros.api_find_and_modify:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        path: ip dns static
+        find: "{{ {'name': item.name} if item.name is defined else {'regexp': item.regexp} }}"
+        values: "{{ item }}"
+      loop: "{{ routeros.ip_dns_static | default([]) }}"
+
+    - name: Configure Firewall Address Lists
+      community.routeros.api_find_and_modify:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        path: ip firewall address-list
+        find:
+          address: "{{ item.address }}"
+          list: "{{ item.list }}"
+        values: "{{ item }}"
+      loop: "{{ routeros.ip_firewall_address_list | default([]) }}"
+
+    - name: Configure Firewall Filter
+      community.routeros.api_find_and_modify:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        path: ip firewall filter
+        find:
+          comment: "{{ item.comment | default('') }}"
+        values: "{{ item }}"
+      loop: "{{ routeros.ip_firewall_filter | default([]) }}"
+
+    - name: Configure Firewall NAT
+      community.routeros.api_find_and_modify:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        path: ip firewall nat
+        find:
+          comment: "{{ item.comment | default('') }}"
+        values: "{{ item }}"
+      loop: "{{ routeros.ip_firewall_nat | default([]) }}"
+
     - name: Configure Static Routes
       community.routeros.api_find_and_modify:
         hostname: "{{ ansible_host }}"
@@ -92,17 +225,6 @@
           dst-address: "{{ item['dst-address'] }}"
         values: "{{ item }}"
       loop: "{{ routeros.ip_route | default([]) }}"
-
-    - name: Configure Firewall NAT
-      community.routeros.api_find_and_modify:
-        hostname: "{{ ansible_host }}"
-        username: "{{ ansible_user }}"
-        password: "{{ ansible_password }}"
-        path: ip firewall nat
-        find:
-          comment: "{{ item.comment }}"
-        values: "{{ item }}"
-      loop: "{{ routeros.ip_firewall_nat | default([]) }}"
 
 - name: Configure SwOS devices
   hosts: mikrotik
