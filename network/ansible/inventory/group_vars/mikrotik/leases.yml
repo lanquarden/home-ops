@@ -1,0 +1,20 @@
+---
+network_leases:
+  - address: 192.168.1.54
+    mac_address: 1c:69:7a:6a:20:35
+    comment: "rocione"
+  - address: 192.168.1.56
+    mac_address: 1c:69:7a:6a:63:d9
+    comment: "rocitwo"
+  - address: 192.168.1.57
+    mac_address: 88:ae:dd:09:71:af
+    comment: "rocithree"
+  - address: 192.168.1.12
+    mac_address: b4:7a:f1:a8:b0:aa
+    comment: "storone"
+  - address: 192.168.1.13
+    mac_address: 38:ea:a7:ab:5e:98
+    comment: "stortwo"
+  - address: 192.168.1.156
+    mac_address: e4:5f:01:55:57:4e
+    comment: "smartdash"

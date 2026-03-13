@@ -3,6 +3,25 @@
 trunk_ports: [ether17, ether18, ether23, ether24]
 not_access_ports: [ether1, ether2, ether3, ether4, ether5, ether6, ether7, ether8]
 
+# Helper to resolve VLAN names to IDs from group_vars/mikrotik/networks.yml
+vlan_ids: >-
+  {%- set ids = {} -%}
+  {%- for vlan in network_vlans -%}
+    {%- set _ = ids.update({vlan.name: vlan.id}) -%}
+  {%- endfor -%}
+  {{ ids }}
+
+# Automatically generate all 28 ports
+all_ports: >-
+  {%- set ports = [] -%}
+  {%- for i in range(1, 25) -%}
+    {%- set _ = ports.append('ether' ~ i) -%}
+  {%- endfor -%}
+  {%- for i in range(1, 5) -%}
+    {%- set _ = ports.append('sfp-sfpplus' ~ i) -%}
+  {%- endfor -%}
+  {{ ports }}
+
 routeros:
   system_identity:
     name: switch3
@@ -29,40 +48,25 @@ routeros:
       auto-mac: false
       comment: defconf
 
-  bridge_port:
-    - { bridge: bridge, interface: ether1, pvid: 30, frame-types: admit-only-untagged-and-priority-tagged }
-    - { bridge: bridge, interface: ether2, pvid: 30, frame-types: admit-only-untagged-and-priority-tagged }
-    - { bridge: bridge, interface: ether3, pvid: 30, frame-types: admit-only-untagged-and-priority-tagged }
-    - { bridge: bridge, interface: ether4, pvid: 30, frame-types: admit-only-untagged-and-priority-tagged }
-    - { bridge: bridge, interface: ether5, pvid: 30, frame-types: admit-only-untagged-and-priority-tagged }
-    - { bridge: bridge, interface: ether6, pvid: 30, frame-types: admit-only-untagged-and-priority-tagged }
-    - { bridge: bridge, interface: ether7, pvid: 30, frame-types: admit-only-untagged-and-priority-tagged }
-    - { bridge: bridge, interface: ether8, pvid: 30, frame-types: admit-only-untagged-and-priority-tagged }
-    - { bridge: bridge, interface: ether9 }
-    - { bridge: bridge, interface: ether10 }
-    - { bridge: bridge, interface: ether11 }
-    - { bridge: bridge, interface: ether12 }
-    - { bridge: bridge, interface: ether13 }
-    - { bridge: bridge, interface: ether14 }
-    - { bridge: bridge, interface: ether15 }
-    - { bridge: bridge, interface: ether16 }
-    - { bridge: bridge, interface: ether17 }
-    - { bridge: bridge, interface: ether18 }
-    - { bridge: bridge, interface: ether19 }
-    - { bridge: bridge, interface: ether20 }
-    - { bridge: bridge, interface: ether21 }
-    - { bridge: bridge, interface: ether22 }
-    - { bridge: bridge, interface: ether23 }
-    - { bridge: bridge, interface: ether24 }
-    - { bridge: bridge, interface: sfp-sfpplus1 }
-    - { bridge: bridge, interface: sfp-sfpplus2 }
-    - { bridge: bridge, interface: sfp-sfpplus3 }
-    - { bridge: bridge, interface: sfp-sfpplus4 }
+  bridge_port: >-
+    {%- set ports = [] -%}
+    {%- for port in all_ports -%}
+      {%- set vlan_id = vlan_ids.NoT if port in not_access_ports else vlan_ids.LAN -%}
+      {%- set entry = {"bridge": "bridge", "interface": port} -%}
+      {%- if vlan_id != vlan_ids.LAN -%}
+        {%- set _ = entry.update({
+          "pvid": vlan_id,
+          "frame-types": "admit-only-untagged-and-priority-tagged"
+        }) -%}
+      {%- endif -%}
+      {%- set _ = ports.append(entry) -%}
+    {%- endfor -%}
+    {{ ports }}
 
   bridge_vlan:
-    - { bridge: bridge, vlan-ids: 20, tagged: "{{ trunk_ports | join(',') }}" }
-    - { bridge: bridge, vlan-ids: 30, tagged: "{{ trunk_ports | join(',') }}", untagged: "{{ not_access_ports | join(',') }}" }
-    - { bridge: bridge, vlan-ids: 100, tagged: "{{ trunk_ports | join(',') }}" }
+    - { bridge: bridge, vlan-ids: "{{ vlan_ids.IoT }}", tagged: "{{ trunk_ports | join(',') }}" }
+    - { bridge: bridge, vlan-ids: "{{ vlan_ids.NoT }}", tagged: "{{ trunk_ports | join(',') }}", untagged: "{{ not_access_ports | join(',') }}" }
+    - { bridge: bridge, vlan-ids: "{{ vlan_ids.Guest }}", tagged: "{{ trunk_ports | join(',') }}" }
 
   ip_address:
     - address: 192.168.1.4/24
